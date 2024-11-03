@@ -1,11 +1,20 @@
 import React from 'react';
 import './App.scss';
 import { createApiClient, Ticket } from './api';
-import { PinFilled, Undo } from '@wix/wix-ui-icons-common';
+import { PinFilled, UndoFilled } from '@wix/wix-ui-icons-common';
+
+type SearchParams = {
+	query: string;
+	after?: string;
+	before?: string;
+	from?: string;
+};
 
 export type AppState = {
 	tickets?: Ticket[],
 	search: string;
+	page: number;
+	searchParams?: SearchParams;
 }
 
 const api = createApiClient();
@@ -13,16 +22,49 @@ const api = createApiClient();
 export class App extends React.PureComponent<{}, AppState> {
 
 	state: AppState = {
+		tickets: [],
 		search: '',
+		page: 1,
+		searchParams: { query: '' }
 	}
 
 	searchDebounce: any = null;
+	loadMoreRef: React.RefObject<HTMLDivElement> = React.createRef(); // Reference for the Load More trigger
+	observer: IntersectionObserver | null = null; // IntersectionObserver instance
 
 	async componentDidMount() {
-		const tickets = await api.getTickets()
-		this.setState({
-			tickets: tickets.map(ticket => ({ ...ticket, isPinned: false })) // Ensure isPinned is initialized
+		await this.loadTickets();
+		this.setupObserver(); // Setup the observer
+	}
+
+	componentWillUnmount() {
+		this.observer?.disconnect(); // Clean up the observer
+	}
+
+	setupObserver = () => {
+		this.observer = new IntersectionObserver((entries) => {
+			const entry = entries[0];
+			if (entry.isIntersecting) {
+				this.loadMoreTickets(); // Load more tickets when intersecting
+			}
 		});
+
+		if (this.loadMoreRef.current) {
+			this.observer.observe(this.loadMoreRef.current); // Start observing the Load More trigger
+		}
+	}
+
+	async loadTickets() {
+		const tickets = await api.getTickets(this.state.searchParams);
+		this.setState(prevState => ({
+			tickets: [...prevState.tickets, ...(Array.isArray(tickets) ? tickets : [])],
+		}));
+	}
+
+	loadMoreTickets = async () => {
+		this.setState(prevState => ({
+			page: prevState.page + 1 // Increment the page number
+		}), this.loadTickets); // Call loadTickets after updating the page state
 	}
 
 	renderTickets = (tickets: Ticket[]) => {
@@ -40,12 +82,13 @@ export class App extends React.PureComponent<{}, AppState> {
 				{pinnedTickets.map((ticket) => this.renderTicket(ticket))}
 				{/* Render other tickets */}
 				{otherTickets.map((ticket) => this.renderTicket(ticket))}
+				<div ref={this.loadMoreRef} className='load-more-trigger'></div>
 			</ul>
 		)
 	}
 
 	renderTicket = (ticket: Ticket) => {
-		const IconComponent = ticket.isPinned ? Undo : PinFilled;
+		const IconComponent = ticket.isPinned ? UndoFilled : PinFilled;
 		return (
 			<li key={ticket.id} className='ticket'>
 				<div className='ticketHeader'> <h5 className='title'>{ticket.title}</h5>
@@ -92,14 +135,34 @@ export class App extends React.PureComponent<{}, AppState> {
 		}));
 	}
 
+	parseSearch = (val: string) => {
+		const searchParams: SearchParams = { query: val };
 
-	onSearch = async (val: string, newPage?: number) => {
+		const afterMatch = val.match(/after:(\d{2}\/\d{2}\/\d{4})/);
+		const beforeMatch = val.match(/before:(\d{2}\/\d{2}\/\d{4})/);
+		const fromMatch = val.match(/from:([^\s]+)/);
 
+		if (afterMatch) searchParams.after = afterMatch[1];
+		if (beforeMatch) searchParams.before = beforeMatch[1];
+		if (fromMatch) searchParams.from = fromMatch[1];
+
+		searchParams.query = val
+			.replace(/after:\d{2}\/\d{2}\/\d{4}/, '')
+			.replace(/before:\d{2}\/\d{2}\/\d{4}/, '')
+			.replace(/from:[^\s]+/, '')
+			.trim();
+
+		this.setState({ searchParams });
+	};
+
+
+	onSearch = (val: string) => {
 		clearTimeout(this.searchDebounce);
 
-		this.searchDebounce = setTimeout(async () => {
-			this.setState({
-				search: val
+		this.searchDebounce = setTimeout(() => {
+			this.parseSearch(val);
+			this.setState({ tickets: [], page: 1, searchParams: { query: val } }, () => {
+				this.loadTickets();
 			});
 		}, 300);
 	}
