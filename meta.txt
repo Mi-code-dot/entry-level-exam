@@ -1,0 +1,3 @@
+examKey=1
+createdAt=1/24/2021
+candidateEmail=yours@email.com

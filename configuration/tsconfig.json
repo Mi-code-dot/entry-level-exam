@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true, // Skip type checking of declaration files (e.g., node_modules)
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true, // Keep strict mode enabled for most checks
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react",
+    "noImplicitAny": false, // Allow implicit 'any' types
+    "strictNullChecks": false, // Allow null and undefined in more cases
+    "noImplicitThis": false, // Allow 'this' to be implicitly 'any'
+    "suppressImplicitAnyIndexErrors": true // Suppress errors for implicit 'any' in index signatures
+  },
+  "include": [
+    "src"
+  ]
+}
