@@ -1,19 +1,19 @@
 import React from 'react';
 import './App.scss';
 import { createApiClient, Ticket } from './api';
-import { PinFilled } from '@wix/wix-ui-icons-common';
+import { PinFilled, Undo } from '@wix/wix-ui-icons-common';
 
 export type AppState = {
 	tickets?: Ticket[],
 	search: string;
 }
-// 
+
 const api = createApiClient();
 
 export class App extends React.PureComponent<{}, AppState> {
 
 	state: AppState = {
-		search: ''
+		search: '',
 	}
 
 	searchDebounce: any = null;
@@ -44,38 +44,54 @@ export class App extends React.PureComponent<{}, AppState> {
 		)
 	}
 
-	renderTicket = (ticket: Ticket) => (
-		<li key={ticket.id} className='ticket'>
-			<div className='ticketHeader'> <h5 className='title'>{ticket.title}</h5>
-				<PinFilled onClick={() => this.togglePin(ticket.id)}>
-					{ticket.isPinned ? 'Unpin' : 'Pin'}
-				</PinFilled>
-			</div>
-			<h4 className='content'>{ticket.content}</h4>
-			{ticket.labels && ticket.labels.length > 0 && (
-				<div className='labels'>
-					{ticket.labels.map(label => (
-						<span key={label} className='label'>{label}</span>
-					))}
+	renderTicket = (ticket: Ticket) => {
+		const IconComponent = ticket.isPinned ? Undo : PinFilled;
+		return (
+			<li key={ticket.id} className='ticket'>
+				<div className='ticketHeader'> <h5 className='title'>{ticket.title}</h5>
+					<IconComponent className='pinIcon' onClick={() => this.togglePin(ticket.id)}>
+						{ticket.isPinned ? 'Unpin' : 'Pin'}
+					</IconComponent>
 				</div>
-			)}
-			<footer>
-				<div className='meta-data'>By {ticket.userEmail} | {new Date(ticket.creationTime).toLocaleString()}</div>
-			</footer>
-			{/* Render labels */}
-
-		</li>
-	)
+				{/* Content section with show more/less */}
+				<h4 className={`content ${ticket.isExpanded ? 'expanded' : ''}`}>
+					{ticket.content}
+				</h4>
+				{ticket.content.length > 450 && ( // Only show toggle if content is lengthy
+					<span className='toggleButton' onClick={() => this.toggleExpand(ticket.id)}>
+						{ticket.isExpanded ? 'See Less' : 'See More'}
+					</span>
+				)}
+				{ticket.labels && ticket.labels.length > 0 && (
+					<div className='labels'>
+						{ticket.labels.map(label => (
+							<span key={label} className='label'>{label}</span>
+						))}
+					</div>
+				)}
+				<footer>
+					<div className='meta-data'>By {ticket.userEmail} | {new Date(ticket.creationTime).toLocaleString()}</div>
+				</footer>
+			</li>
+		)
+	}
 
 
 	togglePin = (id: string) => {
-		// this.setState((prevState) => ({
-		// 	tickets: prevState.tickets?.map(ticket =>
-		// 		ticket.id === id ? { ...ticket, isPinned: !ticket.isPinned } : ticket)
-		// }));
-		console.log(':)))))')
+		this.setState((prevState) => ({
+			tickets: prevState.tickets?.map(ticket =>
+				ticket.id === id ? { ...ticket, isPinned: !ticket.isPinned } : ticket)
+		}));
 
 	};
+
+	toggleExpand = (id: string) => {
+		this.setState((prevState) => ({
+			tickets: prevState.tickets?.map(ticket =>
+				ticket.id === id ? { ...ticket, isExpanded: !ticket.isExpanded } : ticket)
+		}));
+	}
+
 
 	onSearch = async (val: string, newPage?: number) => {
 

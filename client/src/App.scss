@@ -85,6 +85,7 @@ body {
 			.ticketHeader {
 				display: flex;
 				justify-content:flex-start;
+				align-items: center;
 				gap: 10px;
 			}
 
@@ -96,12 +97,36 @@ body {
 				color: #20455e;
 			}
 
+			.pinIcon {
+				cursor: pointer;
+			}
+
 			.content {
 				font-size: 14px;
 				color: #7a92a5;
 				font-weight: 400;
 				font-style: normal;
+				display: -webkit-box;
+				-webkit-line-clamp: 3;
+				-webkit-box-orient: vertical;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			
+				&.expanded {
+					-webkit-line-clamp: unset;
+				}
 			}
+			
+			.toggleButton {
+				color: #3899ec;
+				cursor: pointer;
+				font-weight: 500;
+				font-size: 12px;
+				margin-top: 5px;
+				display: inline-block;
+			}
+			
+			
 			
 			footer {
 				display: flex;
@@ -116,18 +141,18 @@ body {
 			}
 
 			.labels {
-				margin-top: 10px; // Add some space above the labels
+				margin-top: 10px;
 				display: flex;
 				flex-wrap: wrap;
 				justify-content: flex-end;
 			
 				.label {
-					border-radius: 4px; // Rounded corners
-					padding: 4px 8px; // Padding for label text
-					margin-right: 8px; // Space between labels
-					margin-bottom: 4px; // Space below labels
-					font-size: 12px; // Font size for label text
-					background-color: #daeffe; // Blue for enhancement
+					border-radius: 4px;
+					padding: 4px 8px;
+					margin-right: 8px;
+					margin-bottom: 4px;
+					font-size: 12px;
+					background-color: #daeffe;
 					border: 2px solid #c1e4fe;
 				}
 			}	

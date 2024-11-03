@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {APIRootPath} from '@fed-exam/config';
+import { APIRootPath } from '@fed-exam/config';
 
 export type Ticket = {
     id: string,
@@ -9,6 +9,7 @@ export type Ticket = {
     userEmail: string;
     labels?: string[];
     isPinned?: boolean;
+    isExpanded?: boolean;
 }
 
 export type ApiClient = {
